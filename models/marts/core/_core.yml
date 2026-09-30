@@ -12,7 +12,8 @@ models:
       - name: lifetime_value
         data_tests:
           - dbt_utils.accepted_range:
-              min_value: 0
+              arguments:
+                min_value: 0
 
   - name: dim_products
     description: Product dimension with price band and category target.
@@ -22,7 +23,8 @@ models:
       - name: price_band
         data_tests:
           - accepted_values:
-              values: ['budget', 'mid', 'premium']
+              arguments:
+                values: ['budget', 'mid', 'premium']
 
   - name: dim_stores
     description: Store dimension enriched with country attributes.
@@ -35,7 +37,8 @@ models:
     # Model-level (table) test from the dbt_expectations package.
     data_tests:
       - dbt_expectations.expect_table_row_count_to_be_between:
-          min_value: 1
+          arguments:
+            min_value: 1
     columns:
       - name: order_sk
         data_tests: [unique, not_null]
@@ -44,17 +47,20 @@ models:
       - name: customer_id
         data_tests:
           - relationships:
-              to: ref('dim_customers')
-              field: customer_id
+              arguments:
+                to: ref('dim_customers')
+                field: customer_id
       - name: store_id
         data_tests:
           - relationships:
-              to: ref('dim_stores')
-              field: store_id
+              arguments:
+                to: ref('dim_stores')
+                field: store_id
       - name: order_amount
         data_tests:
           - dbt_utils.accepted_range:
-              min_value: 0
+              arguments:
+                min_value: 0
 
   - name: fct_order_items
     description: One row per order line. Grain = order_item_id.
@@ -64,5 +70,6 @@ models:
       - name: product_id
         data_tests:
           - relationships:
-              to: ref('dim_products')
-              field: product_id
+              arguments:
+                to: ref('dim_products')
+                field: product_id

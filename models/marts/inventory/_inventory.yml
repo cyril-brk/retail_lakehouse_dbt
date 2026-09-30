@@ -11,7 +11,8 @@ models:
       - name: event_type
         data_tests:
           - accepted_values:
-              values: ['receive', 'sale', 'return', 'adjustment', 'shrinkage']
+              arguments:
+                values: ['receive', 'sale', 'return', 'adjustment', 'shrinkage']
 
   - name: agg_current_stock
     description: Current stock-on-hand per store + product.

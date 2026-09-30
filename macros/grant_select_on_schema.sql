@@ -8,7 +8,8 @@
       --args '{schema: core, grantee: "bi_readers"}'
 #}
 {% macro grant_select_on_schema(schema, grantee) %}
-    {% set fqn_schema = target.catalog ~ '.' ~ target.schema ~ '_' ~ schema %}
+    {% set resolved_schema = generate_schema_name(schema, none) %}
+    {% set fqn_schema = adapter.quote(target.catalog) ~ '.' ~ adapter.quote(resolved_schema) %}
     {% set sql %}
         GRANT SELECT ON SCHEMA {{ fqn_schema }} TO `{{ grantee }}`
     {% endset %}

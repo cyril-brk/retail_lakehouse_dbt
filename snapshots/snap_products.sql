@@ -12,7 +12,7 @@
 {% snapshot snap_products %}
 {{
     config(
-        target_schema='snapshots',
+        schema='snapshots',
         unique_key='product_id',
         strategy='check',
         check_cols=['price', 'product_name', 'category']

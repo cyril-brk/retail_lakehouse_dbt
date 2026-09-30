@@ -9,7 +9,8 @@ models:
       - name: amount
         data_tests:
           - dbt_utils.accepted_range:
-              min_value: 0
+              arguments:
+                min_value: 0
 
   - name: mart_category_revenue
     description: Monthly revenue by category vs target with % attainment.

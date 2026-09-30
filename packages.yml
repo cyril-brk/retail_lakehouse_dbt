@@ -6,5 +6,5 @@ packages:
     version: [">=1.1.0", "<2.0.0"]
 
   # Ready-made generic tests (e.g. accepted range, not null where, etc.)
-  - package: calogica/dbt_expectations
-    version: [">=0.10.0", "<0.11.0"]
+  - package: metaplane/dbt_expectations
+    version: [">=0.10.10", "<0.11.0"]

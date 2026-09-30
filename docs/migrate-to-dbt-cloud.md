@@ -29,11 +29,10 @@ seeds, snapshots, macros, tests, and `packages.yml` transfer **unchanged**.
 
 ## 1. Put the project in Git
 
-The dbt project (the folder containing `dbt_project.yml`) is **nested** at
-`dbt_retail_lakehouse/`. Pick your repo root and push:
+The repository root is the dbt project root and contains `dbt_project.yml`:
 
 ```bash
-cd .../dbt_primark          # or dbt_retail_lakehouse — your choice of repo root
+cd .../dbt_retail_lakehouse
 git init && git add -A && git commit -m "Initial dbt retail lakehouse project"
 git remote add origin <your-remote> && git push -u origin main
 ```
@@ -43,8 +42,8 @@ git remote add origin <your-remote> && git push -u origin main
 ## 2. Create the dbt Cloud project
 
 - **Account settings → Projects → New Project**, connect the Git repo.
-- Set **Project subdirectory = `dbt_retail_lakehouse`** (because `dbt_project.yml`
-  is not at the repo root). This is the most commonly missed step.
+- Leave **Project subdirectory empty** because `dbt_project.yml` is at the
+  repository root.
 
 ## 3. Configure the Databricks connection (replaces `profiles.yml`)
 
@@ -67,7 +66,8 @@ dbt Cloud separates **development** (the IDE, your personal creds) from
 - **Development credentials** → your PAT or user OAuth + a personal schema
   (e.g. `dbt_cyril`). Equivalent to the local `dev` target.
 - **Deployment environment (Prod)** → a **service principal** token / OAuth M2M +
-  schema `analytics`. Equivalent to the local `prod` target and the DAB `run_as`.
+  schema `analytics`. Equivalent to deploying the DAB `prod` target with a
+  service-principal-authenticated CLI profile.
 
 > The dbt-databricks 1.10 "more than one authorization method configured"
 > conflict is **local-only** (it came from `.env` + `~/.databrickscfg`). dbt Cloud
@@ -75,20 +75,17 @@ dbt Cloud separates **development** (the IDE, your personal creds) from
 
 ## 5. Pick the dbt version
 
-In each environment choose a **release track / version ≥ 1.10** (or "Latest").
-You do **not** manage `dbt-core` / `dbt-databricks` pins in Cloud — `pyproject.toml`'s
-`>=1.10,<2.0` now governs only local runs.
+Choose the **Fusion engine** where available, or the **Latest** release track while
+preparing an environment for Fusion. The project uses the current generic-test,
+source freshness, and snapshot configuration formats required by Fusion.
+You do **not** manage `dbt-core` / `dbt-databricks` pins in Cloud; the pins in
+`pyproject.toml` govern local and Databricks Job runs only.
 
-## 6. Handle the `env_var()` references
+## 6. Source catalog resolution
 
-`models/staging/_sources.yml` uses `env_var('DATABRICKS_CATALOG', 'retail_lakehouse_dbt')`:
-
-- It has a **default**, so it resolves to `retail_lakehouse_dbt` in Cloud with no
-  config — fine as long as the connection catalog matches.
-- To override it from the UI, note dbt Cloud environment variables must be
-  **prefixed `DBT_`**, so `DATABRICKS_CATALOG` can't be set as-is. Cleanest
-  long-term fix: point the source `database:` at the connection catalog via
-  `target.database` instead of an env var (optional).
+`models/staging/_sources.yml` uses `target.catalog`, so raw sources follow the
+catalog configured on the active dbt Cloud Databricks connection. No project
+environment variable is needed for the source catalog.
 
 ## 7. Verify in the Cloud IDE
 

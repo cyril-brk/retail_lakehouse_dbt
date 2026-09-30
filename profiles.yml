@@ -35,7 +35,7 @@ retail_lakehouse:
 
       # <<< PLACEHOLDER >>> Unity Catalog catalog + schema this target writes to.
       catalog: "{{ env_var('DATABRICKS_CATALOG', 'retail_lakehouse_dbt') }}"
-      schema: "{{ env_var('DATABRICKS_SCHEMA', 'dbt_' ~ env_var('USER', 'dev')) }}"
+      schema: "{{ env_var('DATABRICKS_SCHEMA', 'dbt_dev') }}"
 
       # --- AUTH: Personal Access Token (dev) --------------------------- #
       # <<< PLACEHOLDER >>> A workspace PAT (User Settings > Developer > Access tokens).

@@ -78,7 +78,7 @@ seeds:
 snapshots:
   retail_lakehouse:
     +file_format: delta
-    +target_schema: snapshots
+    +schema: snapshots
 
 # Project-level variables (override with `--vars` on the CLI).
 vars:

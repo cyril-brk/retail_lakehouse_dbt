@@ -8,9 +8,9 @@ version: 2
 sources:
   - name: retail_raw
     description: Raw landing tables loaded from CSV into Unity Catalog.
-    # database = UC catalog, schema = UC schema. Uses env vars so it follows
-    # whichever target you run against.
-    database: "{{ env_var('DATABRICKS_CATALOG', 'retail_lakehouse_dbt') }}"
+    # database = UC catalog, schema = UC schema. Follow the active connection
+    # target so this works in dbt Cloud without project-specific environment vars.
+    database: "{{ target.catalog }}"
     schema: raw
 
     # NOTE: source freshness needs a `loaded_at_field`, so it's defined per-table
@@ -37,10 +37,11 @@ sources:
 
       - name: raw_orders
         description: Order headers. `updated_at` is the incremental watermark.
-        loaded_at_field: updated_at
-        freshness:
-          warn_after: {count: 36, period: hour}
-          error_after: {count: 48, period: hour}
+        config:
+          loaded_at_field: updated_at
+          freshness:
+            warn_after: {count: 36, period: hour}
+            error_after: {count: 48, period: hour}
         columns:
           - name: order_id
             data_tests: [unique, not_null]
@@ -58,10 +59,11 @@ sources:
 
       - name: raw_inventory_events
         description: Append-only stock movement events. `event_at` is the watermark.
-        loaded_at_field: event_at
-        freshness:
-          warn_after: {count: 36, period: hour}
-          error_after: {count: 48, period: hour}
+        config:
+          loaded_at_field: event_at
+          freshness:
+            warn_after: {count: 36, period: hour}
+            error_after: {count: 48, period: hour}
         columns:
           - name: event_id
             data_tests: [unique, not_null]
