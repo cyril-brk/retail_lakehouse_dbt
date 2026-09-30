@@ -1,0 +1,25 @@
+version: 2
+
+seeds:
+  - name: country_codes
+    description: >
+      Reference lookup: ISO country code -> country name + region.
+      Demonstrates SEEDS (small, version-controlled CSVs loaded as tables) and
+      how marts can join to seed data.
+    columns:
+      - name: country_code
+        description: Two-letter ISO country code (primary key).
+        data_tests:
+          - unique
+          - not_null
+      - name: country_name
+        data_tests: [not_null]
+      - name: region
+
+  - name: category_targets
+    description: Monthly revenue target per product category (used by a mart + exposure).
+    columns:
+      - name: category
+        data_tests: [unique, not_null]
+      - name: monthly_revenue_target
+        data_tests: [not_null]

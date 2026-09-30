@@ -1,0 +1,20 @@
+version: 2
+
+models:
+  - name: fct_payments
+    description: One row per payment.
+    columns:
+      - name: payment_id
+        data_tests: [unique, not_null]
+      - name: amount
+        data_tests:
+          - dbt_utils.accepted_range:
+              min_value: 0
+
+  - name: mart_category_revenue
+    description: Monthly revenue by category vs target with % attainment.
+    columns:
+      - name: category
+        data_tests: [not_null]
+      - name: pct_of_target
+        description: Revenue as a percentage of the monthly target.

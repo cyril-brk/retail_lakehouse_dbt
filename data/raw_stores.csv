@@ -1,0 +1,13 @@
+store_id,store_name,country_code,store_type
+1,Store 001,DE,outlet
+2,Store 002,DE,outlet
+3,Store 003,IE,outlet
+4,Store 004,IE,flagship
+5,Store 005,US,standard
+6,Store 006,FR,standard
+7,Store 007,GB,standard
+8,Store 008,FR,outlet
+9,Store 009,US,standard
+10,Store 010,GB,standard
+11,Store 011,ES,outlet
+12,Store 012,IE,standard

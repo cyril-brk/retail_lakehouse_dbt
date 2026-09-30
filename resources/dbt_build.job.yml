@@ -1,0 +1,54 @@
+# =============================================================================
+# Lakeflow Job that runs the dbt project on serverless compute.
+#
+# Two tasks so you can see task dependencies + selective runs:
+#   1. dbt_build  -> deps, seed, run, snapshot, test (the full DAG)
+#   2. dbt_source_freshness -> checks raw data recency after the build
+#
+# Compute: SERVERLESS (via `environments`), so there is no cloud-specific
+# node_type_id to fill in. The dbt CLI runs on serverless; SQL executes on the
+# SQL Warehouse given by ${var.warehouse_id}.
+# =============================================================================
+resources:
+  jobs:
+    dbt_build_job:
+      name: "[${bundle.target}] retail_lakehouse dbt build"
+
+      # Serverless Python environment that installs the dbt-databricks adapter.
+      environments:
+        - environment_key: dbt_env
+          spec:
+            environment_version: "3"
+            dependencies:
+              - "dbt-databricks>=1.10,<2.0"
+
+      tasks:
+        - task_key: dbt_build
+          environment_key: dbt_env
+          dbt_task:
+            # Paths resolve from this resources/ file; dbt_project.yml is one level up.
+            project_directory: ..
+            # No --target: when warehouse_id is set, Databricks generates the
+            # profile and picks the default target for us.
+            commands:
+              - "dbt deps"
+              - "dbt build"
+            catalog: ${var.catalog}
+            schema: ${var.schema}
+            warehouse_id: ${var.warehouse_id}
+
+        - task_key: dbt_source_freshness
+          depends_on:
+            - task_key: dbt_build
+          environment_key: dbt_env
+          dbt_task:
+            project_directory: ..
+            commands:
+              - "dbt deps"
+              - "dbt source freshness"
+            catalog: ${var.catalog}
+            schema: ${var.schema}
+            warehouse_id: ${var.warehouse_id}
+
+      queue:
+        enabled: true

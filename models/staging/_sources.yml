@@ -1,0 +1,67 @@
+version: 2
+
+# =============================================================================
+# SOURCES — declare the raw tables dbt reads FROM (but does not create).
+# Reference them in models with {{ source('retail_raw', 'raw_orders') }}.
+# `freshness` lets `dbt source freshness` alert when data goes stale.
+# =============================================================================
+sources:
+  - name: retail_raw
+    description: Raw landing tables loaded from CSV into Unity Catalog.
+    # database = UC catalog, schema = UC schema. Uses env vars so it follows
+    # whichever target you run against.
+    database: "{{ env_var('DATABRICKS_CATALOG', 'retail_lakehouse_dbt') }}"
+    schema: raw
+
+    # NOTE: source freshness needs a `loaded_at_field`, so it's defined per-table
+    # below (only on the tables that carry a watermark), not at the source level.
+
+    tables:
+      - name: raw_customers
+        description: One row per customer as captured by the source system.
+        columns:
+          - name: customer_id
+            description: Natural key from the source system.
+            data_tests: [unique, not_null]
+
+      - name: raw_products
+        description: Product catalog including current price (changes over time).
+        columns:
+          - name: product_id
+            data_tests: [unique, not_null]
+
+      - name: raw_stores
+        columns:
+          - name: store_id
+            data_tests: [unique, not_null]
+
+      - name: raw_orders
+        description: Order headers. `updated_at` is the incremental watermark.
+        loaded_at_field: updated_at
+        freshness:
+          warn_after: {count: 36, period: hour}
+          error_after: {count: 48, period: hour}
+        columns:
+          - name: order_id
+            data_tests: [unique, not_null]
+
+      - name: raw_order_items
+        description: Order line items (grain = one product line per order).
+        columns:
+          - name: order_item_id
+            data_tests: [unique, not_null]
+
+      - name: raw_payments
+        columns:
+          - name: payment_id
+            data_tests: [unique, not_null]
+
+      - name: raw_inventory_events
+        description: Append-only stock movement events. `event_at` is the watermark.
+        loaded_at_field: event_at
+        freshness:
+          warn_after: {count: 36, period: hour}
+          error_after: {count: 48, period: hour}
+        columns:
+          - name: event_id
+            data_tests: [unique, not_null]

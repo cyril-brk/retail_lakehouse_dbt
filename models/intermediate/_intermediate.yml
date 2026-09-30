@@ -1,0 +1,12 @@
+version: 2
+
+models:
+  - name: int_order_items_enriched
+    description: >
+      Ephemeral: order lines joined to product attributes. Inlined into
+      downstream models — no table/view is created for it.
+
+  - name: int_orders_enriched
+    description: >
+      Ephemeral: order headers with line-item and payment rollups at the
+      order grain. Building block for fct_orders.

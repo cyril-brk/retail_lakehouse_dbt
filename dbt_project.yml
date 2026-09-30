@@ -1,0 +1,86 @@
+# =============================================================================
+# dbt_project.yml — the heart of every dbt project.
+# Defines project metadata and default behaviours for models/seeds/snapshots.
+# Docs: https://docs.getdbt.com/reference/dbt_project.yml
+# =============================================================================
+name: 'retail_lakehouse'
+version: '1.0.0'
+config-version: 2
+
+# The profile (in ~/.databricks/profiles.yml or ./profiles.yml) that tells dbt
+# HOW to connect to Databricks. Must match a key in profiles.yml.
+profile: 'retail_lakehouse'
+
+# Where dbt looks for each resource type.
+model-paths: ["models"]
+seed-paths: ["seeds"]
+snapshot-paths: ["snapshots"]
+macro-paths: ["macros"]
+test-paths: ["tests"]
+analysis-paths: ["analyses"]
+
+# Directories dbt cleans with `dbt clean`.
+clean-targets:
+  - "target"
+  - "dbt_packages"
+
+# --------------------------------------------------------------------------- #
+# Model configuration — configured by folder (path-based inheritance).
+# Anything set here can be overridden in a model's own config() block or in a
+# properties .yml file. This is where you teach MATERIALIZATIONS + Databricks
+# table properties.
+# --------------------------------------------------------------------------- #
+models:
+  retail_lakehouse:
+    # Default for every model unless overridden below.
+    +materialized: view
+    +file_format: delta          # Databricks: store as Delta Lake tables
+    +persist_docs:               # push dbt descriptions into UC comments
+      relation: true
+      columns: true
+
+    staging:
+      +materialized: view        # staging = lightweight views over sources
+      +schema: staging           # -> lands in <catalog>.<prefix>_staging
+      +tags: ["staging"]
+
+    intermediate:
+      +materialized: ephemeral   # ephemeral = inlined CTEs, no DB object
+      +tags: ["intermediate"]
+
+    marts:
+      +materialized: table       # marts = physical Delta tables for BI
+      +tags: ["marts"]
+      core:
+        +schema: core
+      finance:
+        +schema: finance
+      inventory:
+        +schema: inventory
+        # Incremental example lives here; its strategy is set in the model file.
+
+# --------------------------------------------------------------------------- #
+# Seeds — CSVs in seeds/ loaded as tables. Great for small reference data.
+# --------------------------------------------------------------------------- #
+seeds:
+  retail_lakehouse:
+    +schema: seeds
+    +file_format: delta
+    country_codes:
+      +column_types:
+        country_code: string
+        country_name: string
+        region: string
+
+# --------------------------------------------------------------------------- #
+# Snapshots — SCD Type 2 history capture. Config also lives in the snapshot file.
+# --------------------------------------------------------------------------- #
+snapshots:
+  retail_lakehouse:
+    +file_format: delta
+    +target_schema: snapshots
+
+# Project-level variables (override with `--vars` on the CLI).
+vars:
+  # Only process orders on/after this date in full refreshes (teaching var).
+  start_date: '2024-01-01'

@@ -1,0 +1,26 @@
+[project]
+name = "retail-lakehouse-dbt"
+version = "1.0.0"
+description = "dbt on Databricks — retail lakehouse learning project"
+readme = "README.md"
+# dbt-core 1.10 supports Python 3.9–3.12 (not 3.13 yet). uv will fetch a
+# compatible interpreter automatically on `uv sync`.
+requires-python = ">=3.9,<3.13"
+dependencies = [
+    # 1.10 is the current supported line; <2.0 guards the breaking major bump.
+    "dbt-core>=1.10,<2.0",
+    "dbt-databricks>=1.10,<2.0",
+]
+
+# Managed by uv. Run `uv sync` to create .venv and install these, then either
+# `uv run dbt ...` or activate the env with `source .venv/bin/activate`.
+[tool.uv]
+package = false
+
+# Resolve/install ALL packages through the Databricks PyPI proxy (default = true
+# replaces pypi.org entirely, so nothing is pulled from public PyPI). This pins
+# the index in the project so it holds even without the machine's global uv config.
+[[tool.uv.index]]
+name = "databricks-pypi-proxy"
+url = "https://pypi-proxy.cloud.databricks.com/simple/"
+default = true

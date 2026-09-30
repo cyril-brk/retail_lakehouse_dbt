@@ -1,0 +1,32 @@
+version: 2
+
+# =============================================================================
+# EXPOSURES — declare downstream uses of your data (dashboards, apps, ML models).
+# They show up in the docs/lineage graph so you can see what breaks if a model
+# changes. They don't run anything; they document the "last mile".
+# =============================================================================
+exposures:
+  - name: retail_executive_dashboard
+    type: dashboard
+    maturity: high
+    url: https://<<< your-workspace >>>/sql/dashboards/<<< dashboard-id >>>
+    description: >
+      Executive AI/BI dashboard tracking revenue vs target, order volume, and
+      stock levels.
+    depends_on:
+      - ref('fct_orders')
+      - ref('mart_category_revenue')
+      - ref('agg_current_stock')
+    owner:
+      name: Analytics Team
+      email: analytics@example.com
+
+  - name: customer_churn_model
+    type: ml
+    maturity: medium
+    description: Nightly churn scoring job that reads the customer dimension.
+    depends_on:
+      - ref('dim_customers')
+    owner:
+      name: Data Science
+      email: ds@example.com

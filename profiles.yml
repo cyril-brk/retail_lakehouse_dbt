@@ -1,0 +1,65 @@
+# =============================================================================
+# profiles.yml — connection details for dbt -> Databricks.
+#
+# This is a TEMPLATE with PLACEHOLDERS. Two common places dbt looks for it:
+#   1. ~/.dbt/profiles.yml           (default, keeps secrets out of the repo)
+#   2. ./profiles.yml + `dbt <cmd> --profiles-dir .`   (used here for learning)
+#
+# All secrets are read from environment variables via {{ env_var(...) }} so
+# nothing sensitive is committed. Copy .env.example -> .env and fill it in.
+#
+# Adapter: dbt-databricks  (pip install dbt-databricks)
+# Docs: https://docs.getdbt.com/docs/core/connect-data-platform/databricks-setup
+# =============================================================================
+retail_lakehouse:
+  # `dbt build --target dev` picks one of the outputs below.
+  target: dev
+
+  outputs:
+    # ------------------------------------------------------------------- #
+    # DEV — personal development target.
+    # Auth via Personal Access Token (simplest to get started).
+    # ------------------------------------------------------------------- #
+    dev:
+      type: databricks
+
+      # <<< PLACEHOLDER >>> Workspace hostname, NO https:// and NO trailing slash.
+      #   e.g. adb-1234567890123456.7.azuredatabricks.net
+      #        dbc-a1b2c3d4-e5f6.cloud.databricks.com
+      host: "{{ env_var('DATABRICKS_HOST') }}"
+
+      # <<< PLACEHOLDER >>> SQL Warehouse HTTP path (Warehouse > Connection details).
+      #   e.g. /sql/1.0/warehouses/abcd1234efgh5678
+      # (For all-purpose clusters it looks like /sql/protocolv1/o/<org>/<cluster-id>.)
+      http_path: "{{ env_var('DATABRICKS_HTTP_PATH') }}"
+
+      # <<< PLACEHOLDER >>> Unity Catalog catalog + schema this target writes to.
+      catalog: "{{ env_var('DATABRICKS_CATALOG', 'retail_lakehouse_dbt') }}"
+      schema: "{{ env_var('DATABRICKS_SCHEMA', 'dbt_' ~ env_var('USER', 'dev')) }}"
+
+      # --- AUTH: Personal Access Token (dev) --------------------------- #
+      # <<< PLACEHOLDER >>> A workspace PAT (User Settings > Developer > Access tokens).
+      token: "{{ env_var('DATABRICKS_TOKEN') }}"
+
+      threads: 4
+
+    # ------------------------------------------------------------------- #
+    # PROD — CI / production target.
+    # Auth via OAuth Machine-to-Machine (Service Principal) — recommended.
+    # ------------------------------------------------------------------- #
+    prod:
+      type: databricks
+      host: "{{ env_var('DATABRICKS_HOST') }}"
+      http_path: "{{ env_var('DATABRICKS_HTTP_PATH_PROD') }}"
+      catalog: "{{ env_var('DATABRICKS_CATALOG_PROD', 'retail_lakehouse_prod') }}"
+      schema: "{{ env_var('DATABRICKS_SCHEMA_PROD', 'analytics') }}"
+
+      # --- AUTH: OAuth M2M via Service Principal ----------------------- #
+      auth_type: oauth
+      # <<< PLACEHOLDER >>> Service Principal OAuth credentials.
+      #   Create in: Settings > Identity and access > Service principals
+      #   Then generate an "OAuth secret" for that SP.
+      client_id: "{{ env_var('DATABRICKS_CLIENT_ID') }}"
+      client_secret: "{{ env_var('DATABRICKS_CLIENT_SECRET') }}"
+
+      threads: 8

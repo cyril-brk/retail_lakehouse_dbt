@@ -1,0 +1,69 @@
+# =============================================================================
+# databricks.yml — Databricks Asset Bundle (DAB) for this dbt project.
+#
+# A DAB packages the dbt project + a Lakeflow Job that runs `dbt build`,
+# and deploys it to dev/prod with one command. The bundle root is
+# this dbt project directory, so the job's dbt_task sees dbt_project.yml at its
+# root (project_directory: .. from the resource file).
+#
+# Deploy:   databricks bundle deploy -t dev  --profile <PROFILE>
+# Run now:  databricks bundle run  dbt_build_job -t dev --profile <PROFILE>
+# Docs:     https://docs.databricks.com/dev-tools/bundles/
+# =============================================================================
+bundle:
+  name: retail_lakehouse
+
+include:
+  - resources/*.yml
+
+# Don't sync local-only artifacts up to the workspace.
+sync:
+  exclude:
+    - ".venv/"
+    - "target/"
+    - "dbt_packages/"
+    - "logs/"
+    - "data/"          # raw CSVs are loaded via the setup scripts, not the job
+    - ".env"
+
+# --------------------------------------------------------------------------- #
+# Variables — parameterized per target below. The job references ${var.*}.
+# --------------------------------------------------------------------------- #
+variables:
+  catalog:
+    description: Unity Catalog catalog the job builds into.
+    default: retail_lakehouse_dbt
+  schema:
+    description: Target schema for the job's dbt run.
+    default: analytics
+  warehouse_id:
+    description: >
+      SQL Warehouse ID the dbt task connects to (the id after /warehouses/ in
+      the http_path). When set, Databricks auto-generates the dbt profile using
+      the job's run-as identity — no token/profiles.yml needed in the job.
+      Supply it with BUNDLE_VAR_warehouse_id or --var warehouse_id=<id>.
+
+# --------------------------------------------------------------------------- #
+# Targets — workspace host and authentication come from the selected CLI profile.
+# Deploy prod with a service-principal-authenticated profile so the deployed job
+# uses that service principal as its run-as identity.
+# --------------------------------------------------------------------------- #
+targets:
+  dev:
+    default: true
+    mode: development            # prefixes resources with [dev you]
+    variables:
+      catalog: retail_lakehouse_dbt
+      schema: dbt_${workspace.current_user.short_name}   # per-developer schema
+
+  prod:
+    mode: production             # no name-mangling; enforces good hygiene
+    workspace:
+      root_path: /Workspace/Shared/.bundle/${bundle.name}/${bundle.target}
+    variables:
+      catalog: retail_lakehouse_dbt
+      schema: analytics
+    permissions:
+      # <<< PLACEHOLDER >>> who can manage the deployed job in prod.
+      - level: CAN_MANAGE
+        group_name: data_engineers
